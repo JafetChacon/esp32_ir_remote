@@ -17,9 +17,9 @@ This project was built by command `idf.py create-project`.
 
 
 
-| OUTPUTS  | DispSeg_A | DispSeg_B | DispSeg_C | DispSeg_D | DispSeg_E | DispSeg_F | IR LED |
-| -------- | --------- | --------- | --------- | --------- | --------- | --------- | ------ |
-| ADDRESS  | D21       | D19       | D05       | D04       | D02       | D22       | D18    |
+| OUTPUTS  | DispSeg_A | DispSeg_B | DispSeg_C | DispSeg_D | DispSeg_E | DispSeg_F | DispSeg_G | IR LED |
+| -------- | --------- | --------- | --------- | --------- | --------- | --------- | --------- | ------ |
+| ADDRESS  | D21       | D19       | D05       | D04       | D02       | D22       | D23       | D18    |
 
 ## Folder contents
 
