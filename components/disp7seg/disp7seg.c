@@ -1,6 +1,26 @@
 #include "disp7seg.h"
-#include <stdio.h>
-void printHolis(void){
-    printf("Holis\n");
-    return;
+
+void printNumTo7Seg(uint8_t num, uint8_t pins[7]){
+    bool code [16][7] = {   {1,1,1,1,1,1,0},
+                            {0,1,1,0,0,0,0},
+                            {1,1,0,1,1,0,1},
+                            {1,1,1,1,0,0,1},
+                            {0,1,1,0,0,1,1},
+                            {1,0,1,1,0,1,1},
+                            {1,0,1,1,1,1,1},
+                            {1,1,1,0,0,0,0},
+                            {1,1,1,1,1,1,1},
+                            {1,1,1,1,0,1,1},
+                            {1,1,1,0,1,1,1},
+                            {0,0,1,1,1,1,1},
+                            {1,0,0,1,1,1,0},
+                            {0,1,1,1,1,0,1},
+                            {1,0,0,1,1,1,1},
+                            {1,0,0,0,1,1,1}
+                            };
+    if (num<=16){
+        for (uint8_t i = 0; i < 7; i++) gpio_set_level(pins[i],  (code[num][i])!= 0);
+    } else{
+        for (uint8_t i = 0; i < 7; i++) gpio_set_level(pins[i],  (code[0][i])!= 0);
+    }
 }
