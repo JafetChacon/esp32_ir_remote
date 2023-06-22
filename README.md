@@ -33,6 +33,10 @@ Below is short explanation of remaining files in the project folder.
 
 ```
 ├── CMakeLists.txt
+├── components
+│   └── disp7seg
+│       ├── disp7seg.c
+│       └── disp7seg.h
 ├── main
 │   ├── CMakeLists.txt
 │   └── main.c
