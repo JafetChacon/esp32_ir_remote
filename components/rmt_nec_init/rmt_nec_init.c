@@ -1,8 +1,9 @@
 #include "rmt_nec_init.h"
-#include "esp_check.h"
+#include "esp_log.h"
 
-static const char *TAG2 = "nec_encoder";
+static const char *TAG = "nec_encoder";
 
-void holis2(void){
-    ESP_LOGI(TAG2, "create RMT TX channel");
+
+void rmt_nec_init (void){
+    
 }

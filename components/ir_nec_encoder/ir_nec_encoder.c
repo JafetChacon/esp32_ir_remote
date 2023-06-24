@@ -4,8 +4,9 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-#include "esp_check.h"
+#include "esp_log.h"
 #include "ir_nec_encoder.h"
+#include "esp_check.h"
 
 
 static const char *TAG = "nec_encoder";

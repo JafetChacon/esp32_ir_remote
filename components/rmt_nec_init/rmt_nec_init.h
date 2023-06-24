@@ -17,6 +17,6 @@
 #define NEC_REPEAT_CODE_DURATION_0   9000
 #define NEC_REPEAT_CODE_DURATION_1   2250
 
-void holis2(void);
+void rmt_nec_init (void);
 
 #endif
