@@ -9,21 +9,77 @@
 #include "esp_timer.h"
 #include "driver/rmt_tx.h"
 #include "esp_log.h"
+#include "freertos/queue.h"
 
 #define TIME_FOR_LONG_PRESS         500000        //uS
 bool long_pressed = false;
+const uint8_t button1 = 13,   //Mode
+        button2 = 12,   //
+        button3 = 14,
+        button4 = 27,
+        button5 = 26,
+        button6 = 25;
+uint8_t button [6] = {button1, button2, button3, button4, button5, button6 };
 
-static const char *TAG = "example";
+const uint8_t seg_A = 21,
+        seg_B = 19,
+        seg_C = 05,
+        seg_D = 04,
+        seg_E = 02,
+        seg_F = 22,
+        seg_G = 23;
+uint8_t sevSegPIN [7] = {seg_A, seg_B, seg_C, seg_D, seg_E, seg_F, seg_G};
 
-void timer_callback(void *param){
-    long_pressed = true;
+QueueHandle_t interputQueue;
+esp_timer_handle_t button0_timer0_handler;
+esp_timer_handle_t button0_timer1_handler;
+esp_timer_handle_t button0_timer2_handler;
+
+static const char *TAG_RMT = "RMT";
+
+void button0_timer0_callback(void *param){
+    ESP_ERROR_CHECK(esp_timer_start_once(button0_timer1_handler, 1000000));
+    //long_pressed = true;
+    ESP_LOGI(TAG_RMT, "SEND COMMAND 2");
+    printNumTo7Seg(2, sevSegPIN);
+}
+
+void button0_timer1_callback(void *param){
+    ESP_ERROR_CHECK(esp_timer_start_once(button0_timer2_handler, 100000));
+    ESP_LOGI(TAG_RMT, "SEND COMMAND 3");
+    printNumTo7Seg(3, sevSegPIN);
+}
+
+void button0_timer2_callback(void *param){
+    ESP_LOGI(TAG_RMT, "SEND COMMAND 3");
+    printNumTo7Seg(3, sevSegPIN);
+    if (!gpio_get_level(button[0])) ESP_ERROR_CHECK(esp_timer_start_once(button0_timer2_handler, 100000));
+}
+
+static void IRAM_ATTR button0_interrupt_handler(void *args)
+{
+    if (!gpio_get_level(button[0])){        //Flanco de bajada (Cuando se presiona el botón)
+        ESP_ERROR_CHECK(esp_timer_start_once(button0_timer0_handler, 1000000));
+    } else {                                //Flanco de subida (Cuando se suelta el botón)
+        //if(esp_timer_is_active((button0_timer0_handler))) ESP_ERROR_CHECK(esp_timer_stop(button0_timer0_handler));
+        if(esp_timer_is_active((button0_timer1_handler))) ESP_ERROR_CHECK(esp_timer_stop(button0_timer1_handler));
+        if(esp_timer_is_active((button0_timer2_handler))) ESP_ERROR_CHECK(esp_timer_stop(button0_timer2_handler));
+        if (esp_timer_is_active((button0_timer0_handler))){
+            printNumTo7Seg(1, sevSegPIN);
+            //ESP_LOGI(TAG_RMT, "SEND COMMAND 1");
+            ESP_ERROR_CHECK(esp_timer_stop(button0_timer0_handler));
+        }
+        //long_pressed=false;
+    }
+    //int pinNumber = (int)args;
+    //xQueueSendFromISR(interputQueue, &pinNumber, NULL);
 }
 
 void app_main(void)
 {
     
-    /*Configuración RMT*/
-    ESP_LOGI(TAG, "create RMT TX channel");
+    /*********************************************Configuración RMT*************************************************************/
+    ESP_LOGI(TAG_RMT, "create RMT TX channel");
     rmt_tx_channel_config_t tx_channel_cfg = {
         .clk_src = RMT_CLK_SRC_DEFAULT,
         .resolution_hz = EXAMPLE_IR_RESOLUTION_HZ,
@@ -33,7 +89,7 @@ void app_main(void)
     };
     rmt_channel_handle_t tx_channel = NULL;
     ESP_ERROR_CHECK(rmt_new_tx_channel(&tx_channel_cfg, &tx_channel));
-    ESP_LOGI(TAG, "modulate carrier to TX channel");
+    ESP_LOGI(TAG_RMT, "modulate carrier to TX channel");
     rmt_carrier_config_t carrier_cfg = {
         .duty_cycle = 0.33,
         .frequency_hz = 38000, // 38KHz
@@ -43,51 +99,51 @@ void app_main(void)
     rmt_transmit_config_t transmit_config = {
         .loop_count = 0, // no loop
     };
-    ESP_LOGI(TAG, "install IR NEC encoder");
+    ESP_LOGI(TAG_RMT, "install IR NEC encoder");
     ir_nec_encoder_config_t nec_encoder_cfg = {
         .resolution = EXAMPLE_IR_RESOLUTION_HZ,
     };
     rmt_encoder_handle_t nec_encoder = NULL;
     ESP_ERROR_CHECK(rmt_new_ir_nec_encoder(&nec_encoder_cfg, &nec_encoder));
-    ESP_LOGI(TAG, "enable RMT TX channel");
+    ESP_LOGI(TAG_RMT, "enable RMT TX channel");
     ESP_ERROR_CHECK(rmt_enable(tx_channel));
 
-    /*Configuración Timer*/
-    const esp_timer_create_args_t my_timer_args = {
-        .callback = &timer_callback,
-        .name = "PinchePutoPerroTimer"};
-    esp_timer_handle_t timer_handler;
-    ESP_ERROR_CHECK(esp_timer_create(&my_timer_args, &timer_handler));
+    /*********************************************Configuración Timer***********************************************************/
+    const esp_timer_create_args_t button0_timer0_args = {
+        .callback = &button0_timer0_callback,
+        .name = "Button 0 Timer 0"};
+    const esp_timer_create_args_t button0_timer1_args = {
+        .callback = &button0_timer1_callback,
+        .name = "Button 0 Timer 1"};
+    const esp_timer_create_args_t button0_timer2_args = {
+        .callback = &button0_timer2_callback,
+        .name = "Button 0 Timer 2"};
+    ESP_ERROR_CHECK(esp_timer_create(&button0_timer0_args, &button0_timer0_handler));
+    ESP_ERROR_CHECK(esp_timer_create(&button0_timer1_args, &button0_timer1_handler));
+    ESP_ERROR_CHECK(esp_timer_create(&button0_timer2_args, &button0_timer2_handler));
+
     
     //holis();
     //holis2();
     //holis3();
 
-    /*Configuración 7 segmentos*/
-    //bool longAction = false;
-    uint8_t seg_A = 21,
-            seg_B = 19,
-            seg_C = 05,
-            seg_D = 04,
-            seg_E = 02,
-            seg_F = 22,
-            seg_G = 23;
-    uint8_t sevSegPIN [7] = {seg_A, seg_B, seg_C, seg_D, seg_E, seg_F, seg_G};
-    uint8_t button1 = 13,   //Mode
-            button2 = 12,   //
-            button3 = 14,
-            button4 = 27,
-            button5 = 26,
-            button6 = 25;
-    uint8_t button [6] = {button1, button2, button3, button4, button5, button6 };
+    /*****************************************Configuración 7 segmentos*********************************************************/
+    
     for (uint8_t i = 0; i < 7; i++){
         gpio_set_direction(sevSegPIN[i], GPIO_MODE_OUTPUT);
     }
     for (uint8_t i = 0; i < 6; i++){
         gpio_set_direction(button[i], GPIO_MODE_INPUT);
-        gpio_set_pull_mode(button[i], GPIO_PULLUP_ONLY);  
+        gpio_set_pull_mode(button[i], GPIO_PULLUP_ONLY);
+        //gpio_pulldown_dis(button[i]);
+        //gpio_pullup_en(button[i]);
+        gpio_set_intr_type(button[i], GPIO_INTR_ANYEDGE);  
     }
-    //Prueba de display
+    interputQueue = xQueueCreate(10, sizeof(int));
+    gpio_install_isr_service(0);
+    gpio_isr_handler_add(button[0], button0_interrupt_handler, (void *)button[0]);
+    
+    //Prueba de display//
     for (uint8_t i = 0; i < 7; i++){
         gpio_set_level(sevSegPIN[i], 1);
         vTaskDelay(200/ portTICK_PERIOD_MS);
@@ -100,6 +156,17 @@ void app_main(void)
         .address = 0xFF00,
         .command = 0xC0C0,
     };
+    while (true)
+    {
+        printNumTo7Seg(0, sevSegPIN);
+        vTaskDelay(1000/ portTICK_PERIOD_MS);
+    }
+    
+}
+
+
+/*
+
     while (1) {
             scan_code.address = 0x0E0E;
             scan_code.command = 0x0000;
@@ -184,4 +251,5 @@ void app_main(void)
             
         vTaskDelay(200/ portTICK_PERIOD_MS);
     }
-}
+
+*/
