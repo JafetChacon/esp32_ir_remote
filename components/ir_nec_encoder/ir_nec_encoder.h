@@ -39,8 +39,6 @@ typedef struct {
  */
 esp_err_t rmt_new_ir_nec_encoder(const ir_nec_encoder_config_t *config, rmt_encoder_handle_t *ret_encoder);
 
-void holis(void);
-
 #ifdef __cplusplus
 }
 #endif

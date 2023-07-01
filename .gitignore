@@ -1,0 +1,5 @@
+# Ignorar los archivos de la carpeta build
+build/
+
+# Ingnorar los archivos relacionados a vscode
+.vscode/

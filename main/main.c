@@ -12,7 +12,6 @@
 #include "freertos/queue.h"
 
 #define TIME_FOR_LONG_PRESS         500000        //uS
-bool long_pressed = false;
 const uint8_t button1 = 13,   //Mode
         button2 = 12,   //
         button3 = 14,
@@ -30,7 +29,7 @@ const uint8_t seg_A = 21,
         seg_G = 23;
 uint8_t sevSegPIN [7] = {seg_A, seg_B, seg_C, seg_D, seg_E, seg_F, seg_G};
 
-QueueHandle_t interputQueue;
+QueueHandle_t interrutCommandsQueue;
 esp_timer_handle_t button0_timer0_handler;
 esp_timer_handle_t button0_timer1_handler;
 esp_timer_handle_t button0_timer2_handler;
@@ -39,21 +38,26 @@ static const char *TAG_RMT = "RMT";
 
 void button0_timer0_callback(void *param){
     ESP_ERROR_CHECK(esp_timer_start_once(button0_timer1_handler, 1000000));
-    //long_pressed = true;
-    ESP_LOGI(TAG_RMT, "SEND COMMAND 2");
+    uint16_t command = 0x2002;
+    xQueueSendFromISR(interrutCommandsQueue, &command, NULL);
+    //ESP_LOGI(TAG_RMT, "SEND COMMAND 2");
     printNumTo7Seg(2, sevSegPIN);
 }
 
 void button0_timer1_callback(void *param){
     ESP_ERROR_CHECK(esp_timer_start_once(button0_timer2_handler, 100000));
-    ESP_LOGI(TAG_RMT, "SEND COMMAND 3");
+    uint16_t command = 0x3003;
+    xQueueSendFromISR(interrutCommandsQueue, &command, NULL);
+    //ESP_LOGI(TAG_RMT, "SEND COMMAND 3");
     printNumTo7Seg(3, sevSegPIN);
 }
 
 void button0_timer2_callback(void *param){
-    ESP_LOGI(TAG_RMT, "SEND COMMAND 3");
+    //ESP_LOGI(TAG_RMT, "SEND COMMAND 3");
+    uint16_t command = 0x3003;
+    xQueueSendFromISR(interrutCommandsQueue, &command, NULL);
     printNumTo7Seg(3, sevSegPIN);
-    if (!gpio_get_level(button[0])) ESP_ERROR_CHECK(esp_timer_start_once(button0_timer2_handler, 100000));
+    if (!gpio_get_level(button[0])) ESP_ERROR_CHECK(esp_timer_start_once(button0_timer2_handler, 200000));
 }
 
 static void IRAM_ATTR button0_interrupt_handler(void *args)
@@ -61,23 +65,22 @@ static void IRAM_ATTR button0_interrupt_handler(void *args)
     if (!gpio_get_level(button[0])){        //Flanco de bajada (Cuando se presiona el botón)
         ESP_ERROR_CHECK(esp_timer_start_once(button0_timer0_handler, 1000000));
     } else {                                //Flanco de subida (Cuando se suelta el botón)
-        //if(esp_timer_is_active((button0_timer0_handler))) ESP_ERROR_CHECK(esp_timer_stop(button0_timer0_handler));
         if(esp_timer_is_active((button0_timer1_handler))) ESP_ERROR_CHECK(esp_timer_stop(button0_timer1_handler));
         if(esp_timer_is_active((button0_timer2_handler))) ESP_ERROR_CHECK(esp_timer_stop(button0_timer2_handler));
         if (esp_timer_is_active((button0_timer0_handler))){
+            uint16_t command = 0x1001;
+            xQueueSendFromISR(interrutCommandsQueue, &command, NULL);
             printNumTo7Seg(1, sevSegPIN);
             //ESP_LOGI(TAG_RMT, "SEND COMMAND 1");
             ESP_ERROR_CHECK(esp_timer_stop(button0_timer0_handler));
         }
-        //long_pressed=false;
     }
     //int pinNumber = (int)args;
     //xQueueSendFromISR(interputQueue, &pinNumber, NULL);
 }
 
-void app_main(void)
+void rmtControl(void *params)
 {
-    
     /*********************************************Configuración RMT*************************************************************/
     ESP_LOGI(TAG_RMT, "create RMT TX channel");
     rmt_tx_channel_config_t tx_channel_cfg = {
@@ -107,7 +110,27 @@ void app_main(void)
     ESP_ERROR_CHECK(rmt_new_ir_nec_encoder(&nec_encoder_cfg, &nec_encoder));
     ESP_LOGI(TAG_RMT, "enable RMT TX channel");
     ESP_ERROR_CHECK(rmt_enable(tx_channel));
+    
+    ir_nec_scan_code_t scan_code = {
+        .address = 0xFF00,
+        .command = 0xC0C0,
+    };
 
+    int command = 0;
+    while (true){
+        printNumTo7Seg(0, sevSegPIN);
+        if (xQueueReceive(interrutCommandsQueue, &command, portMAX_DELAY)){
+            scan_code.command = (uint16_t)command;
+            ESP_ERROR_CHECK(rmt_transmit(tx_channel, nec_encoder, &scan_code, sizeof(scan_code), &transmit_config));
+            ESP_LOGI(TAG_RMT, "Command sent: 0x%04X%04X", (int)scan_code.address, (int)scan_code.command);
+            printNumTo7Seg(0, sevSegPIN);
+        }
+    }
+    
+}
+
+void app_main(void)
+{
     /*********************************************Configuración Timer***********************************************************/
     const esp_timer_create_args_t button0_timer0_args = {
         .callback = &button0_timer0_callback,
@@ -121,14 +144,8 @@ void app_main(void)
     ESP_ERROR_CHECK(esp_timer_create(&button0_timer0_args, &button0_timer0_handler));
     ESP_ERROR_CHECK(esp_timer_create(&button0_timer1_args, &button0_timer1_handler));
     ESP_ERROR_CHECK(esp_timer_create(&button0_timer2_args, &button0_timer2_handler));
-
     
-    //holis();
-    //holis2();
-    //holis3();
-
     /*****************************************Configuración 7 segmentos*********************************************************/
-    
     for (uint8_t i = 0; i < 7; i++){
         gpio_set_direction(sevSegPIN[i], GPIO_MODE_OUTPUT);
     }
@@ -139,7 +156,8 @@ void app_main(void)
         //gpio_pullup_en(button[i]);
         gpio_set_intr_type(button[i], GPIO_INTR_ANYEDGE);  
     }
-    interputQueue = xQueueCreate(10, sizeof(int));
+    //interputQueue = xQueueCreate(10, sizeof(int));
+    interrutCommandsQueue = xQueueCreate(10, sizeof(int));
     gpio_install_isr_service(0);
     gpio_isr_handler_add(button[0], button0_interrupt_handler, (void *)button[0]);
     
@@ -152,104 +170,16 @@ void app_main(void)
     printNumTo7Seg(8, sevSegPIN);
     vTaskDelay(1000/ portTICK_PERIOD_MS);
 
-    ir_nec_scan_code_t scan_code = {
-        .address = 0xFF00,
-        .command = 0xC0C0,
-    };
+    
+
+    /*********************************************Configuración Task 1**********************************************************/
+    //interputQueue = xQueueCreate(10, sizeof(int));
+    xTaskCreate(rmtControl, "Administrador de RMT", 2048, NULL, 1, NULL);
+
+
     while (true)
     {
-        printNumTo7Seg(0, sevSegPIN);
         vTaskDelay(1000/ portTICK_PERIOD_MS);
     }
     
 }
-
-
-/*
-
-    while (1) {
-            scan_code.address = 0x0E0E;
-            scan_code.command = 0x0000;
-            if (gpio_get_level(button[0]) == 0) {  // If button is pressed
-                ESP_ERROR_CHECK(esp_timer_start_once(timer_handler, TIME_FOR_LONG_PRESS)); //Valor en microsegundos
-                vTaskDelay(10/ portTICK_PERIOD_MS);
-                while (gpio_get_level(button[0]) == 0) if (long_pressed) break;
-                if(!long_pressed){                          //Acción para presionado corto
-                    printNumTo7Seg(1, sevSegPIN);
-                    scan_code.command = 0x9E61;
-                } else {                                    //Acción para presionado largo
-                    printNumTo7Seg(10, sevSegPIN);
-                    scan_code.command = 0xFB04;
-                }
-            } else if (gpio_get_level(button[1]) == 0) {  // If button is pressed
-                ESP_ERROR_CHECK(esp_timer_start_once(timer_handler, TIME_FOR_LONG_PRESS)); //Valor en microsegundos
-                vTaskDelay(10/ portTICK_PERIOD_MS);
-                while (gpio_get_level(button[1]) == 0) if (long_pressed) break;
-                if(!long_pressed){                          //Acción para presionado corto
-                    printNumTo7Seg(2, sevSegPIN);
-                    scan_code.command = 0x9F60;
-                } else {                                    //Acción para presionado largo
-                    printNumTo7Seg(11, sevSegPIN);
-                    scan_code.command = 0x9768;
-                }
-            } else if (gpio_get_level(button[2]) == 0) {  // If button is pressed
-                ESP_ERROR_CHECK(esp_timer_start_once(timer_handler, TIME_FOR_LONG_PRESS)); //Valor en microsegundos
-                vTaskDelay(10/ portTICK_PERIOD_MS);
-                while (gpio_get_level(button[2]) == 0) if (long_pressed) break;
-                if(!long_pressed){                          //Acción para presionado corto
-                    printNumTo7Seg(3, sevSegPIN);
-                    scan_code.command = 0X9B64;
-                } else {                                    //Acción para presionado largo
-                    printNumTo7Seg(12, sevSegPIN);
-                    scan_code.command = 0X956A;
-                }
-            } else if (gpio_get_level(button[3]) == 0) {  // If button is pressed
-                ESP_ERROR_CHECK(esp_timer_start_once(timer_handler, TIME_FOR_LONG_PRESS)); //Valor en microsegundos
-                vTaskDelay(10/ portTICK_PERIOD_MS);
-                while (gpio_get_level(button[3]) == 0) if (long_pressed) break;
-                if(!long_pressed){                          //Acción para presionado corto
-                    printNumTo7Seg(4, sevSegPIN);
-                    scan_code.command = 0x5EA1;
-                } else {                                    //Acción para presionado largo
-                    printNumTo7Seg(13, sevSegPIN);
-                    scan_code.command = 0x16E9;
-                }
-            } else if (gpio_get_level(button[4]) == 0) {  // If button is pressed
-                ESP_ERROR_CHECK(esp_timer_start_once(timer_handler, TIME_FOR_LONG_PRESS)); //Valor en microsegundos
-                vTaskDelay(10/ portTICK_PERIOD_MS);
-                while (gpio_get_level(button[4]) == 0) if (long_pressed) break;
-                if(!long_pressed){                          //Acción para presionado corto
-                    printNumTo7Seg(5, sevSegPIN);
-                    scan_code.command = 0x7B84;
-                } else {                                    //Acción para presionado largo
-                    printNumTo7Seg(14, sevSegPIN);
-                    scan_code.command = 0x7F80;
-                }
-            } else if (gpio_get_level(button[5]) == 0) {  // If button is pressed
-                ESP_ERROR_CHECK(esp_timer_start_once(timer_handler, TIME_FOR_LONG_PRESS)); //Valor en microsegundos
-                vTaskDelay(10/ portTICK_PERIOD_MS);
-                while (gpio_get_level(button[5]) == 0) if (long_pressed) break;
-                if(!long_pressed){                          //Acción para presionado corto
-                    printNumTo7Seg(6, sevSegPIN);
-                    scan_code.command = 0xF10E;
-                } else {                                    //Acción para presionado largo
-                    printNumTo7Seg(15, sevSegPIN);
-                    scan_code.command = 0xF20D;
-                }
-            }
-            else {
-                printNumTo7Seg(0, sevSegPIN);
-                scan_code.command = 0x0000;
-            }
-            if (scan_code.command!=0x0000){
-                ESP_ERROR_CHECK(rmt_transmit(tx_channel, nec_encoder, &scan_code, sizeof(scan_code), &transmit_config));
-                printf("Address=%04X, Command=%04X\r\n\r\n", scan_code.address, scan_code.command);
-                vTaskDelay(100/ portTICK_PERIOD_MS);
-            }
-            long_pressed = false;
-            esp_timer_stop(timer_handler);
-            
-        vTaskDelay(200/ portTICK_PERIOD_MS);
-    }
-
-*/
