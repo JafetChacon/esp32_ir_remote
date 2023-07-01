@@ -27,16 +27,7 @@ uint8_t sevSegPIN [7] = {seg_A, seg_B, seg_C, seg_D, seg_E, seg_F, seg_G};
 static const char *TAG_RMT = "RMT";
 
 QueueHandle_t interrutCommandsQueue;
-esp_timer_handle_t button0_timer0_handler;
-esp_timer_handle_t button0_timer1_handler;
-esp_timer_handle_t button0_timer2_handler;
-esp_timer_handle_t button1_timer0_handler;
-esp_timer_handle_t button1_timer1_handler;
-esp_timer_handle_t button1_timer2_handler;
-esp_timer_handle_t button2_timer0_handler;
-esp_timer_handle_t button2_timer1_handler;
-esp_timer_handle_t button2_timer2_handler;
-
+esp_timer_handle_t button_timer_handler [6][3];
 
 uint16_t commands [6][3] = {
                             {   0x0101, 0x0202, 0x0303},
