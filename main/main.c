@@ -12,8 +12,8 @@
 #include "freertos/queue.h"
 
 #define TIME_FOR_LONG_PRESS         500000        //uS
-const uint8_t button1 = 13,   //Mode
-        button2 = 12,   //
+const uint8_t button1 = 13,
+        button2 = 12,
         button3 = 14,
         button4 = 27,
         button5 = 26,
@@ -33,6 +33,12 @@ QueueHandle_t interrutCommandsQueue;
 esp_timer_handle_t button0_timer0_handler;
 esp_timer_handle_t button0_timer1_handler;
 esp_timer_handle_t button0_timer2_handler;
+esp_timer_handle_t button1_timer0_handler;
+esp_timer_handle_t button1_timer1_handler;
+esp_timer_handle_t button1_timer2_handler;
+esp_timer_handle_t button2_timer0_handler;
+esp_timer_handle_t button2_timer1_handler;
+esp_timer_handle_t button2_timer2_handler;
 
 static const char *TAG_RMT = "RMT";
 
@@ -60,8 +66,57 @@ void button0_timer2_callback(void *param){
     if (!gpio_get_level(button[0])) ESP_ERROR_CHECK(esp_timer_start_once(button0_timer2_handler, 200000));
 }
 
+void button1_timer0_callback(void *param){
+    ESP_ERROR_CHECK(esp_timer_start_once(button1_timer1_handler, 1000000));
+    uint16_t command = 0x5005;
+    xQueueSendFromISR(interrutCommandsQueue, &command, NULL);
+    //ESP_LOGI(TAG_RMT, "SEND COMMAND 2");
+    printNumTo7Seg(2, sevSegPIN);
+}
+
+void button1_timer1_callback(void *param){
+    ESP_ERROR_CHECK(esp_timer_start_once(button1_timer2_handler, 100000));
+    uint16_t command = 0x6006;
+    xQueueSendFromISR(interrutCommandsQueue, &command, NULL);
+    //ESP_LOGI(TAG_RMT, "SEND COMMAND 3");
+    printNumTo7Seg(3, sevSegPIN);
+}
+
+void button1_timer2_callback(void *param){
+    //ESP_LOGI(TAG_RMT, "SEND COMMAND 3");
+    uint16_t command = 0x6006;
+    xQueueSendFromISR(interrutCommandsQueue, &command, NULL);
+    printNumTo7Seg(3, sevSegPIN);
+    if (!gpio_get_level(button[1])) ESP_ERROR_CHECK(esp_timer_start_once(button1_timer2_handler, 200000));
+}
+
+void button2_timer0_callback(void *param){
+    ESP_ERROR_CHECK(esp_timer_start_once(button2_timer1_handler, 1000000));
+    uint16_t command = 0x8008;
+    xQueueSendFromISR(interrutCommandsQueue, &command, NULL);
+    //ESP_LOGI(TAG_RMT, "SEND COMMAND 2");
+    printNumTo7Seg(8, sevSegPIN);
+}
+
+void button2_timer1_callback(void *param){
+    ESP_ERROR_CHECK(esp_timer_start_once(button2_timer2_handler, 100000));
+    uint16_t command = 0x9009;
+    xQueueSendFromISR(interrutCommandsQueue, &command, NULL);
+    //ESP_LOGI(TAG_RMT, "SEND COMMAND 3");
+    printNumTo7Seg(9, sevSegPIN);
+}
+
+void button2_timer2_callback(void *param){
+    //ESP_LOGI(TAG_RMT, "SEND COMMAND 3");
+    uint16_t command = 0x9009;
+    xQueueSendFromISR(interrutCommandsQueue, &command, NULL);
+    printNumTo7Seg(9, sevSegPIN);
+    if (!gpio_get_level(button[2])) ESP_ERROR_CHECK(esp_timer_start_once(button2_timer2_handler, 200000));
+}
+
 static void IRAM_ATTR button0_interrupt_handler(void *args)
 {
+    //uint8_t _button = (uint8_t)args;
     if (!gpio_get_level(button[0])){        //Flanco de bajada (Cuando se presiona el botón)
         ESP_ERROR_CHECK(esp_timer_start_once(button0_timer0_handler, 1000000));
     } else {                                //Flanco de subida (Cuando se suelta el botón)
@@ -77,6 +132,38 @@ static void IRAM_ATTR button0_interrupt_handler(void *args)
     }
     //int pinNumber = (int)args;
     //xQueueSendFromISR(interputQueue, &pinNumber, NULL);
+}
+
+static void IRAM_ATTR button1_interrupt_handler(void *args)
+{
+    if (!gpio_get_level(button[1])){        //Flanco de bajada (Cuando se presiona el botón)
+        ESP_ERROR_CHECK(esp_timer_start_once(button1_timer0_handler, 1000000));
+    } else {                                //Flanco de subida (Cuando se suelta el botón)
+        if(esp_timer_is_active((button1_timer1_handler))) ESP_ERROR_CHECK(esp_timer_stop(button1_timer1_handler));
+        if(esp_timer_is_active((button1_timer2_handler))) ESP_ERROR_CHECK(esp_timer_stop(button1_timer2_handler));
+        if (esp_timer_is_active((button1_timer0_handler))){
+            uint16_t command = 0x4004;
+            xQueueSendFromISR(interrutCommandsQueue, &command, NULL);
+            printNumTo7Seg(4, sevSegPIN);
+            ESP_ERROR_CHECK(esp_timer_stop(button1_timer0_handler));
+        }
+    }
+}
+
+static void IRAM_ATTR button2_interrupt_handler(void *args)
+{
+    if (!gpio_get_level(button[2])){        //Flanco de bajada (Cuando se presiona el botón)
+        ESP_ERROR_CHECK(esp_timer_start_once(button2_timer0_handler, 1000000));
+    } else {                                //Flanco de subida (Cuando se suelta el botón)
+        if(esp_timer_is_active((button2_timer1_handler))) ESP_ERROR_CHECK(esp_timer_stop(button2_timer1_handler));
+        if(esp_timer_is_active((button2_timer2_handler))) ESP_ERROR_CHECK(esp_timer_stop(button2_timer2_handler));
+        if (esp_timer_is_active((button2_timer0_handler))){
+            uint16_t command = 0x7007;
+            xQueueSendFromISR(interrutCommandsQueue, &command, NULL);
+            printNumTo7Seg(7, sevSegPIN);
+            ESP_ERROR_CHECK(esp_timer_stop(button2_timer0_handler));
+        }
+    }
 }
 
 void rmtControl(void *params)
@@ -141,9 +228,34 @@ void app_main(void)
     const esp_timer_create_args_t button0_timer2_args = {
         .callback = &button0_timer2_callback,
         .name = "Button 0 Timer 2"};
+    const esp_timer_create_args_t button1_timer0_args = {
+        .callback = &button1_timer0_callback,
+        .name = "Button 1 Timer 0"};
+    const esp_timer_create_args_t button1_timer1_args = {
+        .callback = &button1_timer1_callback,
+        .name = "Button 1 Timer 1"};
+    const esp_timer_create_args_t button1_timer2_args = {
+        .callback = &button1_timer2_callback,
+        .name = "Button 1 Timer 2"};
+    const esp_timer_create_args_t button2_timer0_args = {
+        .callback = &button2_timer0_callback,
+        .name = "Button 2 Timer 0"};
+    const esp_timer_create_args_t button2_timer1_args = {
+        .callback = &button2_timer1_callback,
+        .name = "Button 2 Timer 1"};
+    const esp_timer_create_args_t button2_timer2_args = {
+        .callback = &button2_timer2_callback,
+        .name = "Button 2 Timer 2"};
+    
     ESP_ERROR_CHECK(esp_timer_create(&button0_timer0_args, &button0_timer0_handler));
     ESP_ERROR_CHECK(esp_timer_create(&button0_timer1_args, &button0_timer1_handler));
     ESP_ERROR_CHECK(esp_timer_create(&button0_timer2_args, &button0_timer2_handler));
+    ESP_ERROR_CHECK(esp_timer_create(&button1_timer0_args, &button1_timer0_handler));
+    ESP_ERROR_CHECK(esp_timer_create(&button1_timer1_args, &button1_timer1_handler));
+    ESP_ERROR_CHECK(esp_timer_create(&button1_timer2_args, &button1_timer2_handler));
+    ESP_ERROR_CHECK(esp_timer_create(&button2_timer0_args, &button2_timer0_handler));
+    ESP_ERROR_CHECK(esp_timer_create(&button2_timer1_args, &button2_timer1_handler));
+    ESP_ERROR_CHECK(esp_timer_create(&button2_timer2_args, &button2_timer2_handler));
     
     /*****************************************Configuración 7 segmentos*********************************************************/
     for (uint8_t i = 0; i < 7; i++){
@@ -156,10 +268,11 @@ void app_main(void)
         //gpio_pullup_en(button[i]);
         gpio_set_intr_type(button[i], GPIO_INTR_ANYEDGE);  
     }
-    //interputQueue = xQueueCreate(10, sizeof(int));
     interrutCommandsQueue = xQueueCreate(10, sizeof(int));
     gpio_install_isr_service(0);
     gpio_isr_handler_add(button[0], button0_interrupt_handler, (void *)button[0]);
+    gpio_isr_handler_add(button[1], button1_interrupt_handler, (void *)button[1]);
+    gpio_isr_handler_add(button[2], button2_interrupt_handler, (void *)button[2]);
     
     //Prueba de display//
     for (uint8_t i = 0; i < 7; i++){
