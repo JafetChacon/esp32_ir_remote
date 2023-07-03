@@ -30,12 +30,12 @@ QueueHandle_t interrutCommandsQueue;
 esp_timer_handle_t button_timer_handler [6][3];
 
 uint16_t commands [6][3] = {
-                            {   0x0101, 0x0202, 0x0303},
-                            {   0x0404, 0x0505, 0x0606},
-                            {   0x0707, 0x0808, 0x0909},
-                            {   0x0A0A, 0x0B0B, 0X0C0C},
-                            {   0X0D0D, 0X0E0E, 0X0F0F},
-                            {   0X1010, 0X1111, 0X1212}
+                            {   0x0001, 0x0002, 0x0003},
+                            {   0x0004, 0x0005, 0x0006},
+                            {   0x0007, 0x0008, 0x0009},
+                            {   0x000A, 0x000B, 0X000C},
+                            {   0X000D, 0X000E, 0X000F},
+                            {   0X0010, 0X0011, 0X0012}
 };
 
 

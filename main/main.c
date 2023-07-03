@@ -15,49 +15,41 @@ void button0_timer0_callback(void *param){
     xQueueSendFromISR(interrutCommandsQueue, &commands[0][1], NULL);
     printNumTo7Seg(2, sevSegPIN);
 }
-
 void button0_timer1_callback(void *param){
     ESP_ERROR_CHECK(esp_timer_start_once(button_timer_handler[0][2], CONTINOUS_PRESS_TIMER));
     xQueueSendFromISR(interrutCommandsQueue, &commands[0][2], NULL);
     printNumTo7Seg(3, sevSegPIN);
 }
-
 void button0_timer2_callback(void *param){
     xQueueSendFromISR(interrutCommandsQueue, &commands[0][2], NULL);
     printNumTo7Seg(3, sevSegPIN);
     if (!gpio_get_level(button[0])) ESP_ERROR_CHECK(esp_timer_start_once(button_timer_handler[0][2], CONTINOUS_PRESS_TIMER));
 }
-
 void button1_timer0_callback(void *param){
     ESP_ERROR_CHECK(esp_timer_start_once(button_timer_handler[1][1], LONG_KEEP_PRESS_TIME));
     xQueueSendFromISR(interrutCommandsQueue, &commands[1][1], NULL);
     printNumTo7Seg(5, sevSegPIN);
 }
-
 void button1_timer1_callback(void *param){
     ESP_ERROR_CHECK(esp_timer_start_once(button_timer_handler[1][2], CONTINOUS_PRESS_TIMER));
     xQueueSendFromISR(interrutCommandsQueue, &commands[1][2], NULL);
     printNumTo7Seg(6, sevSegPIN);
 }
-
 void button1_timer2_callback(void *param){
     xQueueSendFromISR(interrutCommandsQueue, &commands[1][2], NULL);
     printNumTo7Seg(6, sevSegPIN);
     if (!gpio_get_level(button[1])) ESP_ERROR_CHECK(esp_timer_start_once(button_timer_handler[1][2], 200000));
 }
-
 void button2_timer0_callback(void *param){
     ESP_ERROR_CHECK(esp_timer_start_once(button_timer_handler[2][1], LONG_KEEP_PRESS_TIME));
     xQueueSendFromISR(interrutCommandsQueue, &commands[2][1], NULL);
     printNumTo7Seg(8, sevSegPIN);
 }
-
 void button2_timer1_callback(void *param){
     ESP_ERROR_CHECK(esp_timer_start_once(button_timer_handler[2][2], CONTINOUS_PRESS_TIMER));
     xQueueSendFromISR(interrutCommandsQueue, &commands[2][2], NULL);
     printNumTo7Seg(9, sevSegPIN);
 }
-
 void button2_timer2_callback(void *param){
     xQueueSendFromISR(interrutCommandsQueue, &commands[2][2], NULL);
     printNumTo7Seg(9, sevSegPIN);
@@ -82,7 +74,6 @@ static void IRAM_ATTR button0_interrupt_handler(void *args)
     //int pinNumber = (int)args;
     //xQueueSendFromISR(interputQueue, &pinNumber, NULL);
 }
-
 static void IRAM_ATTR button1_interrupt_handler(void *args)
 {
     if (!gpio_get_level(button[1])){        //Flanco de bajada (Cuando se presiona el botón)
@@ -97,7 +88,6 @@ static void IRAM_ATTR button1_interrupt_handler(void *args)
         }
     }
 }
-
 static void IRAM_ATTR button2_interrupt_handler(void *args)
 {
     if (!gpio_get_level(button[2])){        //Flanco de bajada (Cuando se presiona el botón)
