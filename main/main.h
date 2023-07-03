@@ -16,7 +16,7 @@ const uint8_t button1 = 13,
         button4 = 27,   //27
         button5 = 26,   //26
         button6 = 25;
-uint8_t button [6] = {button1, button2, button3, button4, button5, button6 };
+uint8_t button [NUM_OF_BUTTONS] = {button1, button2, button3, button4, button5, button6 };
 
 const uint8_t seg_A = 21,
         seg_B = 19,
