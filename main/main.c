@@ -10,8 +10,8 @@
 #include "esp_log.h"
 #include "main.h"
 
-void displayTimer_callback(void *param){
-    printNumTo7Seg(0, sevSegPIN);
+void displayTimer_callback(void *param){        //Función para borrar el display
+    printNumTo7Seg(17, sevSegPIN);
 }
 void button0_timer0_callback(void *param){
     ESP_ERROR_CHECK(esp_timer_start_once(button_timer_handler[0][1], LONG_KEEP_PRESS_TIME));
@@ -26,15 +26,19 @@ void button0_timer2_callback(void *param){
     if (!gpio_get_level(button[0])) ESP_ERROR_CHECK(esp_timer_start_once(button_timer_handler[0][2], CONTINOUS_PRESS_TIMER));
 }
 void button1_timer0_callback(void *param){
-    ESP_ERROR_CHECK(esp_timer_start_once(button_timer_handler[1][1], LONG_KEEP_PRESS_TIME));
-    xQueueSendFromISR(interrutCommandsQueue, &commands[1][1], NULL);
+    if (!gpio_get_level(button[1])){        //Cuando está presionado el botón
+        ESP_ERROR_CHECK(esp_timer_start_once(button_timer_handler[1][1], LONG_KEEP_PRESS_TIME));
+
+    } else {                                //Cuando no está presionado el botón
+        xQueueSendFromISR(interrutCommandsQueue, &commands[1][0], NULL);                            /*Enviar el comando de single click*/
+    }
 }
 void button1_timer1_callback(void *param){
     ESP_ERROR_CHECK(esp_timer_start_once(button_timer_handler[1][2], CONTINOUS_PRESS_TIMER));
-    xQueueSendFromISR(interrutCommandsQueue, &commands[1][2], NULL);
+    xQueueSendFromISR(interrutCommandsQueue, &commands[1][3], NULL);                                /*Enviar el comando de long continous press*/
 }
 void button1_timer2_callback(void *param){
-    xQueueSendFromISR(interrutCommandsQueue, &commands[1][2], NULL);
+    xQueueSendFromISR(interrutCommandsQueue, &commands[1][3], NULL);                                /*Enviar el comando de long continous press*/
     if (!gpio_get_level(button[1])) ESP_ERROR_CHECK(esp_timer_start_once(button_timer_handler[1][2], CONTINOUS_PRESS_TIMER));
 }
 void button2_timer0_callback(void *param){
@@ -104,13 +108,18 @@ static void IRAM_ATTR button0_interrupt_handler(void *args)
 static void IRAM_ATTR button1_interrupt_handler(void *args)
 {
     if (!gpio_get_level(button[1])){        //Flanco de bajada (Cuando se presiona el botón)
-        ESP_ERROR_CHECK(esp_timer_start_once(button_timer_handler[1][0], LONG_PRESS_TIME));
-    } else {                                //Flanco de subida (Cuando se suelta el botón)
-        if(esp_timer_is_active((button_timer_handler[1][1]))) ESP_ERROR_CHECK(esp_timer_stop(button_timer_handler[1][1]));
-        if(esp_timer_is_active((button_timer_handler[1][2]))) ESP_ERROR_CHECK(esp_timer_stop(button_timer_handler[1][2]));
         if (esp_timer_is_active((button_timer_handler[1][0]))){
-            xQueueSendFromISR(interrutCommandsQueue, &commands[1][0], NULL);
             ESP_ERROR_CHECK(esp_timer_stop(button_timer_handler[1][0]));
+            xQueueSendFromISR(interrutCommandsQueue, &commands[1][1], NULL);                        /*Enviar comando de doble click*/
+        } else {
+            ESP_ERROR_CHECK(esp_timer_start_once(button_timer_handler[1][0], LONG_PRESS_TIME));
+        }
+    } else {                                //Flanco de subida (Cuando se suelta el botón)
+        //if(esp_timer_is_active((button_timer_handler[1][1]))) ESP_ERROR_CHECK(esp_timer_stop(button_timer_handler[1][1]));
+        if(esp_timer_is_active((button_timer_handler[1][2]))) ESP_ERROR_CHECK(esp_timer_stop(button_timer_handler[1][2]));
+        if (esp_timer_is_active((button_timer_handler[1][1]))){
+            ESP_ERROR_CHECK(esp_timer_stop(button_timer_handler[1][1]));
+            xQueueSendFromISR(interrutCommandsQueue, &commands[1][2], NULL);                        /*Enviar comando de long press*/
         }
     }
 }
@@ -275,7 +284,11 @@ void app_main(void)
         gpio_set_level(sevSegPIN[i], 0);
     }
     printNumTo7Seg(0, sevSegPIN);
-
+    if(!esp_timer_is_active((displayTimer_handler))){
+        ESP_ERROR_CHECK(esp_timer_start_once(displayTimer_handler, TIME_DISPLAYING));
+    } else {
+        ESP_ERROR_CHECK(esp_timer_restart(displayTimer_handler, TIME_DISPLAYING));
+    }
     /*********************************************Configuración Task 1**********************************************************/
     xTaskCreate(rmtControl, "Administrador de RMT", 2048, NULL, 1, NULL);
     while (true)

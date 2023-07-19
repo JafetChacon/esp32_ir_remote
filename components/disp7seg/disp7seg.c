@@ -21,6 +21,6 @@ void printNumTo7Seg(uint8_t num, uint8_t pins[7]){
     if (num<=16){
         for (uint8_t i = 0; i < 7; i++) gpio_set_level(pins[i],  (code[num][i])!= 0);
     } else{
-        for (uint8_t i = 0; i < 7; i++) gpio_set_level(pins[i],  (code[0][i])!= 0);
+        for (uint8_t i = 0; i < 7; i++) gpio_set_level(pins[i],  0);
     }
 }
