@@ -41,12 +41,12 @@ typedef struct
 
 /*************COMANDS***********SINGLE-CLICK************DOUBLE-CLICK************LONG-PRESS*************CONTINUOUS-PRESS******/
 command2send commands [NUM_OF_BUTTONS][4] = {
-                            {   {0xF10E,        1},     {0x00FF,        2},     {0x0003,        3},     {0x0000,        4}},    // Enter (MUTE)
-                            {   {0x906F,        1},     {0xA15E,        2},     {0x0007,        3},     {0x0000,        4}},    // Mode
-                            {   {0xD24B,        1},     {0x51AE,        2},     {0xD24B,        3},     {0xD24B,        4}},    // Volume +
-                            {   {0x21DE,        1},     {0xB14E,        2},     {0X21DE,        3},     {0x21DE,        4}},    // Volume -
-                            {   {0X10FE,        1},     {0XD02F,        2},     {0X916E,        3},     {0x0000,        4}},    // Seek +
-                            {   {0X11EE,        1},     {0XD12E,        2},     {0X718E,        3},     {0x0000,        4}}     // Seek -
+                            {   {0xE01F,        1},     {0xFF00,        2},     {0xFC03,        3},     {0x0000,        4}},    // Enter (MUTE)
+                            {   {0xF609,        1},     {0xE51A,        2},     {0xEF10,        3},     {0x0000,        4}},    // Mode
+                            {   {0xB42D,        1},     {0xEA15,        2},     {0xB42D,        3},     {0xB42D,        4}},    // Volume +
+                            {   {0xED12,        1},     {0xE41B,        2},     {0XED12,        3},     {0xED12,        4}},    // Volume -
+                            {   {0XEF01,        1},     {0XF20D,        2},     {0XE619,        3},     {0x0000,        4}},    // Seek +
+                            {   {0XEE11,        1},     {0XE21D,        2},     {0XE817,        3},     {0x0000,        4}}     // Seek -
 };                      //      Play/Pause              Call                    Mute
                         //      Mode                    Hang                    Power
                         //      Vol +                   Next                    Vol +                   Vol +
