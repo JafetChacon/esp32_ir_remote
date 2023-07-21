@@ -22,7 +22,7 @@ void button0_timer1_callback(void *param){
     xQueueSendFromISR(interrutCommandsQueue, &commands[0][2], NULL);                            /*Long press command*/
 }
 void button0_timer2_callback(void *param){
-    xQueueSendFromISR(interrutCommandsQueue, &commands[0][3], NULL);                            /*Keep pressed command*/
+    //xQueueSendFromISR(interrutCommandsQueue, &commands[0][3], NULL);                            /*Keep pressed command*/
     if (!gpio_get_level(button[0])) ESP_ERROR_CHECK(esp_timer_start_once(button_timer_handler[0][2], CONTINOUS_PRESS_TIMER));
 }
 void button1_timer0_callback(void *param){
@@ -34,7 +34,7 @@ void button1_timer1_callback(void *param){
     xQueueSendFromISR(interrutCommandsQueue, &commands[1][2], NULL);                                                            /*Long press command*/
 }
 void button1_timer2_callback(void *param){
-    xQueueSendFromISR(interrutCommandsQueue, &commands[1][3], NULL);                                                            /*Keep pressed command*/
+    //xQueueSendFromISR(interrutCommandsQueue, &commands[1][3], NULL);                                                            /*Keep pressed command*/
     if (!gpio_get_level(button[1])) ESP_ERROR_CHECK(esp_timer_start_once(button_timer_handler[1][2], CONTINOUS_PRESS_TIMER));
 }
 void button2_timer0_callback(void *param){
@@ -70,7 +70,7 @@ void button4_timer1_callback(void *param){
     xQueueSendFromISR(interrutCommandsQueue, &commands[4][2], NULL);                                                            /*Long press command*/
 }
 void button4_timer2_callback(void *param){
-    xQueueSendFromISR(interrutCommandsQueue, &commands[4][3], NULL);                                                            /*Keep pressed command*/
+    //xQueueSendFromISR(interrutCommandsQueue, &commands[4][3], NULL);                                                            /*Keep pressed command*/
     if (!gpio_get_level(button[4])) ESP_ERROR_CHECK(esp_timer_start_once(button_timer_handler[4][2], CONTINOUS_PRESS_TIMER));
 }
 void button5_timer0_callback(void *param){
@@ -82,7 +82,7 @@ void button5_timer1_callback(void *param){
     xQueueSendFromISR(interrutCommandsQueue, &commands[5][2], NULL);                                                            /*Long press command*/
 }
 void button5_timer2_callback(void *param){
-    xQueueSendFromISR(interrutCommandsQueue, &commands[5][3], NULL);                                                            /*Keep pressed command*/
+    //xQueueSendFromISR(interrutCommandsQueue, &commands[5][3], NULL);                                                            /*Keep pressed command*/
     if (!gpio_get_level(button[5])) ESP_ERROR_CHECK(esp_timer_start_once(button_timer_handler[5][2], CONTINOUS_PRESS_TIMER));
 }
 
