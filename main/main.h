@@ -3,8 +3,8 @@
 
 #include "freertos/queue.h"
 
-#define LONG_PRESS_TIME         1000000        //uS
-#define LONG_KEEP_PRESS_TIME    1000000        //uS
+#define DOUBLE_CLICK_TIME       500000          //uS
+#define LONG_PRESS_TIME         300000         //uS
 #define CONTINOUS_PRESS_TIMER   200000
 #define NUM_OF_BUTTONS          6               //Total num of buttons in main program
 #define NUM_OF_TIMERS           3               //Total num of timers for button (NOT MODIFY)
@@ -41,13 +41,18 @@ typedef struct
 
 /*************COMANDS***********SINGLE-CLICK************DOUBLE-CLICK************LONG-PRESS*************CONTINUOUS-PRESS******/
 command2send commands [NUM_OF_BUTTONS][4] = {
-                            {   {0x0001,        1},     {0x0002,        2},     {0x0003,        3},     {0x0001,        1}},
-                            {   {0x0004,        4},     {0x0005,        5},     {0x0006,        6},     {0x0004,        4}},
-                            {   {0x0007,        7},     {0x0008,        8},     {0x0009,        9},     {0x0007,        7}},
-                            {   {0x000A,        10},    {0x000B,        11},    {0X000C,        12},    {0x000A,        10}},
-                            {   {0X000D,        13},    {0X000E,        14},    {0X000F,        15},    {0x000D,        13}},
-                            {   {0X0010,        1},     {0X0011,        2},     {0X0012,        3},     {0x0001,        1}}
-};
+                            {   {0xF10E,        1},     {0x00FF,        2},     {0x0003,        3},     {0x0000,        4}},    // Enter (MUTE)
+                            {   {0x906F,        1},     {0xA15E,        2},     {0x0007,        3},     {0x0000,        4}},    // Mode
+                            {   {0xD24B,        1},     {0x51AE,        2},     {0xD24B,        3},     {0xD24B,        4}},    // Volume +
+                            {   {0x21DE,        1},     {0xB14E,        2},     {0X21DE,        3},     {0x21DE,        4}},    // Volume -
+                            {   {0X10FE,        1},     {0XD02F,        2},     {0X916E,        3},     {0x0000,        4}},    // Seek +
+                            {   {0X11EE,        1},     {0XD12E,        2},     {0X718E,        3},     {0x0000,        4}}     // Seek -
+};                      //      Play/Pause              Call                    Mute
+                        //      Mode                    Hang                    Power
+                        //      Vol +                   Next                    Vol +                   Vol +
+                        //      Vol -                   Prev                    Vol -                   Vol -
+                        //      Up arrow                Right arrow             USB/SD
+                        //      Down arrow              Left arrow              BAND AMD
 
 
 #endif

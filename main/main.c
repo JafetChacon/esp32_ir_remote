@@ -14,96 +14,91 @@ void displayTimer_callback(void *param){        //Función para borrar el displa
     printNumTo7Seg(17, sevSegPIN);
 }
 void button0_timer0_callback(void *param){
-    ESP_ERROR_CHECK(esp_timer_start_once(button_timer_handler[0][1], LONG_KEEP_PRESS_TIME));
-    xQueueSendFromISR(interrutCommandsQueue, &commands[0][1], NULL);
+    if (!gpio_get_level(button[0])) ESP_ERROR_CHECK(esp_timer_start_once(button_timer_handler[0][1], LONG_PRESS_TIME));
+    if ( gpio_get_level(button[0])) xQueueSendFromISR(interrutCommandsQueue, &commands[0][0], NULL);                            /*Single click command*/
 }
 void button0_timer1_callback(void *param){
-    ESP_ERROR_CHECK(esp_timer_start_once(button_timer_handler[0][2], CONTINOUS_PRESS_TIMER));
-    xQueueSendFromISR(interrutCommandsQueue, &commands[0][2], NULL);
+    if (!gpio_get_level(button[0])) ESP_ERROR_CHECK(esp_timer_start_once(button_timer_handler[0][2], CONTINOUS_PRESS_TIMER));
+    xQueueSendFromISR(interrutCommandsQueue, &commands[0][2], NULL);                            /*Long press command*/
 }
 void button0_timer2_callback(void *param){
-    xQueueSendFromISR(interrutCommandsQueue, &commands[0][2], NULL);
+    xQueueSendFromISR(interrutCommandsQueue, &commands[0][3], NULL);                            /*Keep pressed command*/
     if (!gpio_get_level(button[0])) ESP_ERROR_CHECK(esp_timer_start_once(button_timer_handler[0][2], CONTINOUS_PRESS_TIMER));
 }
 void button1_timer0_callback(void *param){
-    if (!gpio_get_level(button[1])){        //Cuando está presionado el botón
-        ESP_ERROR_CHECK(esp_timer_start_once(button_timer_handler[1][1], LONG_KEEP_PRESS_TIME));
-
-    } else {                                //Cuando no está presionado el botón
-        xQueueSendFromISR(interrutCommandsQueue, &commands[1][0], NULL);                            /*Enviar el comando de single click*/
-    }
+    if (!gpio_get_level(button[1])) ESP_ERROR_CHECK(esp_timer_start_once(button_timer_handler[1][1], LONG_PRESS_TIME));
+    if ( gpio_get_level(button[1])) xQueueSendFromISR(interrutCommandsQueue, &commands[1][0], NULL);                            /*Single click command*/
 }
 void button1_timer1_callback(void *param){
-    ESP_ERROR_CHECK(esp_timer_start_once(button_timer_handler[1][2], CONTINOUS_PRESS_TIMER));
-    xQueueSendFromISR(interrutCommandsQueue, &commands[1][3], NULL);                                /*Enviar el comando de long continous press*/
+    if (!gpio_get_level(button[1])) ESP_ERROR_CHECK(esp_timer_start_once(button_timer_handler[1][2], CONTINOUS_PRESS_TIMER));
+    xQueueSendFromISR(interrutCommandsQueue, &commands[1][2], NULL);                                                            /*Long press command*/
 }
 void button1_timer2_callback(void *param){
-    xQueueSendFromISR(interrutCommandsQueue, &commands[1][3], NULL);                                /*Enviar el comando de long continous press*/
+    xQueueSendFromISR(interrutCommandsQueue, &commands[1][3], NULL);                                                            /*Keep pressed command*/
     if (!gpio_get_level(button[1])) ESP_ERROR_CHECK(esp_timer_start_once(button_timer_handler[1][2], CONTINOUS_PRESS_TIMER));
 }
 void button2_timer0_callback(void *param){
-    ESP_ERROR_CHECK(esp_timer_start_once(button_timer_handler[2][1], LONG_KEEP_PRESS_TIME));
-    xQueueSendFromISR(interrutCommandsQueue, &commands[2][1], NULL);
+    if (!gpio_get_level(button[2])) ESP_ERROR_CHECK(esp_timer_start_once(button_timer_handler[2][1], LONG_PRESS_TIME));
+    if ( gpio_get_level(button[2])) xQueueSendFromISR(interrutCommandsQueue, &commands[2][0], NULL);                            /*Single click command*/
 }
 void button2_timer1_callback(void *param){
-    ESP_ERROR_CHECK(esp_timer_start_once(button_timer_handler[2][2], CONTINOUS_PRESS_TIMER));
-    xQueueSendFromISR(interrutCommandsQueue, &commands[2][2], NULL);
+    if (!gpio_get_level(button[2])) ESP_ERROR_CHECK(esp_timer_start_once(button_timer_handler[2][2], CONTINOUS_PRESS_TIMER));
+    xQueueSendFromISR(interrutCommandsQueue, &commands[2][2], NULL);                                                            /*Long press command*/
 }
 void button2_timer2_callback(void *param){
-    xQueueSendFromISR(interrutCommandsQueue, &commands[2][2], NULL);
+    xQueueSendFromISR(interrutCommandsQueue, &commands[2][3], NULL);                                                            /*Keep pressed command*/
     if (!gpio_get_level(button[2])) ESP_ERROR_CHECK(esp_timer_start_once(button_timer_handler[2][2], CONTINOUS_PRESS_TIMER));
 }
 void button3_timer0_callback(void *param){
-    ESP_ERROR_CHECK(esp_timer_start_once(button_timer_handler[3][1], LONG_KEEP_PRESS_TIME));
-    xQueueSendFromISR(interrutCommandsQueue, &commands[3][1], NULL);
+    if (!gpio_get_level(button[3])) ESP_ERROR_CHECK(esp_timer_start_once(button_timer_handler[3][1], LONG_PRESS_TIME));
+    if ( gpio_get_level(button[3])) xQueueSendFromISR(interrutCommandsQueue, &commands[3][0], NULL);                            /*Single click command*/
 }
 void button3_timer1_callback(void *param){
-    ESP_ERROR_CHECK(esp_timer_start_once(button_timer_handler[3][2], CONTINOUS_PRESS_TIMER));
-    xQueueSendFromISR(interrutCommandsQueue, &commands[3][2], NULL);
+    if (!gpio_get_level(button[3])) ESP_ERROR_CHECK(esp_timer_start_once(button_timer_handler[3][2], CONTINOUS_PRESS_TIMER));
+    xQueueSendFromISR(interrutCommandsQueue, &commands[3][2], NULL);                                                            /*Long press command*/
 }
 void button3_timer2_callback(void *param){
-    xQueueSendFromISR(interrutCommandsQueue, &commands[3][2], NULL);
+    xQueueSendFromISR(interrutCommandsQueue, &commands[3][3], NULL);                                                            /*Keep pressed command*/
     if (!gpio_get_level(button[3])) ESP_ERROR_CHECK(esp_timer_start_once(button_timer_handler[3][2], CONTINOUS_PRESS_TIMER));
 }
 void button4_timer0_callback(void *param){
-    ESP_ERROR_CHECK(esp_timer_start_once(button_timer_handler[4][1], LONG_KEEP_PRESS_TIME));
-    xQueueSendFromISR(interrutCommandsQueue, &commands[4][1], NULL);
+    if (!gpio_get_level(button[4])) ESP_ERROR_CHECK(esp_timer_start_once(button_timer_handler[4][1], LONG_PRESS_TIME));
+    if ( gpio_get_level(button[4])) xQueueSendFromISR(interrutCommandsQueue, &commands[4][0], NULL);                            /*Single click command*/
 }
 void button4_timer1_callback(void *param){
-    ESP_ERROR_CHECK(esp_timer_start_once(button_timer_handler[4][2], CONTINOUS_PRESS_TIMER));
-    xQueueSendFromISR(interrutCommandsQueue, &commands[4][2], NULL);
+    if (!gpio_get_level(button[4])) ESP_ERROR_CHECK(esp_timer_start_once(button_timer_handler[4][2], CONTINOUS_PRESS_TIMER));
+    xQueueSendFromISR(interrutCommandsQueue, &commands[4][2], NULL);                                                            /*Long press command*/
 }
 void button4_timer2_callback(void *param){
-    xQueueSendFromISR(interrutCommandsQueue, &commands[4][2], NULL);
+    xQueueSendFromISR(interrutCommandsQueue, &commands[4][3], NULL);                                                            /*Keep pressed command*/
     if (!gpio_get_level(button[4])) ESP_ERROR_CHECK(esp_timer_start_once(button_timer_handler[4][2], CONTINOUS_PRESS_TIMER));
 }
 void button5_timer0_callback(void *param){
-    ESP_ERROR_CHECK(esp_timer_start_once(button_timer_handler[5][1], LONG_KEEP_PRESS_TIME));
-    xQueueSendFromISR(interrutCommandsQueue, &commands[5][1], NULL);
+    if (!gpio_get_level(button[5])) ESP_ERROR_CHECK(esp_timer_start_once(button_timer_handler[5][1], LONG_PRESS_TIME));
+    if ( gpio_get_level(button[5])) xQueueSendFromISR(interrutCommandsQueue, &commands[5][0], NULL);                            /*Single click command*/
 }
 void button5_timer1_callback(void *param){
-    ESP_ERROR_CHECK(esp_timer_start_once(button_timer_handler[5][2], CONTINOUS_PRESS_TIMER));
-    xQueueSendFromISR(interrutCommandsQueue, &commands[5][2], NULL);
+    if (!gpio_get_level(button[5])) ESP_ERROR_CHECK(esp_timer_start_once(button_timer_handler[5][2], CONTINOUS_PRESS_TIMER));
+    xQueueSendFromISR(interrutCommandsQueue, &commands[5][2], NULL);                                                            /*Long press command*/
 }
 void button5_timer2_callback(void *param){
-    xQueueSendFromISR(interrutCommandsQueue, &commands[5][2], NULL);
+    xQueueSendFromISR(interrutCommandsQueue, &commands[5][3], NULL);                                                            /*Keep pressed command*/
     if (!gpio_get_level(button[5])) ESP_ERROR_CHECK(esp_timer_start_once(button_timer_handler[5][2], CONTINOUS_PRESS_TIMER));
 }
 
 static void IRAM_ATTR button0_interrupt_handler(void *args)
 {
     if (!gpio_get_level(button[0])){        //Flanco de bajada (Cuando se presiona el botón)
-        ESP_ERROR_CHECK(esp_timer_start_once(button_timer_handler[0][0], LONG_PRESS_TIME));
-    } else {                                //Flanco de subida (Cuando se suelta el botón)
-        if(esp_timer_is_active((button_timer_handler[0][1]))) ESP_ERROR_CHECK(esp_timer_stop(button_timer_handler[0][1]));
-        if(esp_timer_is_active((button_timer_handler[0][2]))) ESP_ERROR_CHECK(esp_timer_stop(button_timer_handler[0][2]));
         if (esp_timer_is_active((button_timer_handler[0][0]))){
-            xQueueSendFromISR(interrutCommandsQueue, &commands[0][0], NULL);
             ESP_ERROR_CHECK(esp_timer_stop(button_timer_handler[0][0]));
+            xQueueSendFromISR(interrutCommandsQueue, &commands[0][1], NULL);                        /*Enviar comando de doble click*/
+        } else {
+            ESP_ERROR_CHECK(esp_timer_start_once(button_timer_handler[0][0], DOUBLE_CLICK_TIME));
         }
+    } else {                                //Flanco de subida (Cuando se suelta el botón)
+        if (esp_timer_is_active((button_timer_handler[0][2]))) ESP_ERROR_CHECK(esp_timer_stop(button_timer_handler[0][2]));
+        if (esp_timer_is_active((button_timer_handler[0][1]))) ESP_ERROR_CHECK(esp_timer_stop(button_timer_handler[0][1]));
     }
-    //int pinNumber = (int)args;
-    //xQueueSendFromISR(interputQueue, &pinNumber, NULL);
 }
 static void IRAM_ATTR button1_interrupt_handler(void *args)
 {
@@ -112,67 +107,67 @@ static void IRAM_ATTR button1_interrupt_handler(void *args)
             ESP_ERROR_CHECK(esp_timer_stop(button_timer_handler[1][0]));
             xQueueSendFromISR(interrutCommandsQueue, &commands[1][1], NULL);                        /*Enviar comando de doble click*/
         } else {
-            ESP_ERROR_CHECK(esp_timer_start_once(button_timer_handler[1][0], LONG_PRESS_TIME));
+            ESP_ERROR_CHECK(esp_timer_start_once(button_timer_handler[1][0], DOUBLE_CLICK_TIME));
         }
     } else {                                //Flanco de subida (Cuando se suelta el botón)
-        //if(esp_timer_is_active((button_timer_handler[1][1]))) ESP_ERROR_CHECK(esp_timer_stop(button_timer_handler[1][1]));
-        if(esp_timer_is_active((button_timer_handler[1][2]))) ESP_ERROR_CHECK(esp_timer_stop(button_timer_handler[1][2]));
-        if (esp_timer_is_active((button_timer_handler[1][1]))){
-            ESP_ERROR_CHECK(esp_timer_stop(button_timer_handler[1][1]));
-            xQueueSendFromISR(interrutCommandsQueue, &commands[1][2], NULL);                        /*Enviar comando de long press*/
-        }
+        if (esp_timer_is_active((button_timer_handler[1][2]))) ESP_ERROR_CHECK(esp_timer_stop(button_timer_handler[1][2]));
+        if (esp_timer_is_active((button_timer_handler[1][1]))) ESP_ERROR_CHECK(esp_timer_stop(button_timer_handler[1][1]));
     }
 }
 static void IRAM_ATTR button2_interrupt_handler(void *args)
 {
     if (!gpio_get_level(button[2])){        //Flanco de bajada (Cuando se presiona el botón)
-        ESP_ERROR_CHECK(esp_timer_start_once(button_timer_handler[2][0], LONG_PRESS_TIME));
-    } else {                                //Flanco de subida (Cuando se suelta el botón)
-        if(esp_timer_is_active((button_timer_handler[2][1]))) ESP_ERROR_CHECK(esp_timer_stop(button_timer_handler[2][1]));
-        if(esp_timer_is_active((button_timer_handler[2][2]))) ESP_ERROR_CHECK(esp_timer_stop(button_timer_handler[2][2]));
         if (esp_timer_is_active((button_timer_handler[2][0]))){
-            xQueueSendFromISR(interrutCommandsQueue, &commands[2][0], NULL);
             ESP_ERROR_CHECK(esp_timer_stop(button_timer_handler[2][0]));
+            xQueueSendFromISR(interrutCommandsQueue, &commands[2][1], NULL);                        /*Enviar comando de doble click*/
+        } else {
+            ESP_ERROR_CHECK(esp_timer_start_once(button_timer_handler[2][0], DOUBLE_CLICK_TIME));
         }
+    } else {                                //Flanco de subida (Cuando se suelta el botón)
+        if (esp_timer_is_active((button_timer_handler[2][2]))) ESP_ERROR_CHECK(esp_timer_stop(button_timer_handler[2][2]));
+        if (esp_timer_is_active((button_timer_handler[2][1]))) ESP_ERROR_CHECK(esp_timer_stop(button_timer_handler[2][1]));
     }
 }
 static void IRAM_ATTR button3_interrupt_handler(void *args)
 {
     if (!gpio_get_level(button[3])){        //Flanco de bajada (Cuando se presiona el botón)
-        ESP_ERROR_CHECK(esp_timer_start_once(button_timer_handler[3][0], LONG_PRESS_TIME));
-    } else {                                //Flanco de subida (Cuando se suelta el botón)
-        if(esp_timer_is_active((button_timer_handler[3][1]))) ESP_ERROR_CHECK(esp_timer_stop(button_timer_handler[3][1]));
-        if(esp_timer_is_active((button_timer_handler[3][2]))) ESP_ERROR_CHECK(esp_timer_stop(button_timer_handler[3][2]));
         if (esp_timer_is_active((button_timer_handler[3][0]))){
-            xQueueSendFromISR(interrutCommandsQueue, &commands[3][0], NULL);
             ESP_ERROR_CHECK(esp_timer_stop(button_timer_handler[3][0]));
+            xQueueSendFromISR(interrutCommandsQueue, &commands[3][1], NULL);                        /*Enviar comando de doble click*/
+        } else {
+            ESP_ERROR_CHECK(esp_timer_start_once(button_timer_handler[3][0], DOUBLE_CLICK_TIME));
         }
+    } else {                                //Flanco de subida (Cuando se suelta el botón)
+        if (esp_timer_is_active((button_timer_handler[3][2]))) ESP_ERROR_CHECK(esp_timer_stop(button_timer_handler[3][2]));
+        if (esp_timer_is_active((button_timer_handler[3][1]))) ESP_ERROR_CHECK(esp_timer_stop(button_timer_handler[3][1]));
     }
 }
 static void IRAM_ATTR button4_interrupt_handler(void *args)
 {
     if (!gpio_get_level(button[4])){        //Flanco de bajada (Cuando se presiona el botón)
-        ESP_ERROR_CHECK(esp_timer_start_once(button_timer_handler[4][0], LONG_PRESS_TIME));
-    } else {                                //Flanco de subida (Cuando se suelta el botón)
-        if(esp_timer_is_active((button_timer_handler[4][1]))) ESP_ERROR_CHECK(esp_timer_stop(button_timer_handler[4][1]));
-        if(esp_timer_is_active((button_timer_handler[4][2]))) ESP_ERROR_CHECK(esp_timer_stop(button_timer_handler[4][2]));
         if (esp_timer_is_active((button_timer_handler[4][0]))){
-            xQueueSendFromISR(interrutCommandsQueue, &commands[4][0], NULL);
             ESP_ERROR_CHECK(esp_timer_stop(button_timer_handler[4][0]));
+            xQueueSendFromISR(interrutCommandsQueue, &commands[4][1], NULL);                        /*Enviar comando de doble click*/
+        } else {
+            ESP_ERROR_CHECK(esp_timer_start_once(button_timer_handler[4][0], DOUBLE_CLICK_TIME));
         }
+    } else {                                //Flanco de subida (Cuando se suelta el botón)
+        if (esp_timer_is_active((button_timer_handler[4][2]))) ESP_ERROR_CHECK(esp_timer_stop(button_timer_handler[4][2]));
+        if (esp_timer_is_active((button_timer_handler[4][1]))) ESP_ERROR_CHECK(esp_timer_stop(button_timer_handler[4][1]));
     }
 }
 static void IRAM_ATTR button5_interrupt_handler(void *args)
 {
     if (!gpio_get_level(button[5])){        //Flanco de bajada (Cuando se presiona el botón)
-        ESP_ERROR_CHECK(esp_timer_start_once(button_timer_handler[5][0], LONG_PRESS_TIME));
-    } else {                                //Flanco de subida (Cuando se suelta el botón)
-        if(esp_timer_is_active((button_timer_handler[5][1]))) ESP_ERROR_CHECK(esp_timer_stop(button_timer_handler[5][1]));
-        if(esp_timer_is_active((button_timer_handler[5][2]))) ESP_ERROR_CHECK(esp_timer_stop(button_timer_handler[5][2]));
         if (esp_timer_is_active((button_timer_handler[5][0]))){
-            xQueueSendFromISR(interrutCommandsQueue, &commands[5][0], NULL);
             ESP_ERROR_CHECK(esp_timer_stop(button_timer_handler[5][0]));
+            xQueueSendFromISR(interrutCommandsQueue, &commands[5][1], NULL);                        /*Enviar comando de doble click*/
+        } else {
+            ESP_ERROR_CHECK(esp_timer_start_once(button_timer_handler[5][0], DOUBLE_CLICK_TIME));
         }
+    } else {                                //Flanco de subida (Cuando se suelta el botón)
+        if (esp_timer_is_active((button_timer_handler[5][2]))) ESP_ERROR_CHECK(esp_timer_stop(button_timer_handler[5][2]));
+        if (esp_timer_is_active((button_timer_handler[5][1]))) ESP_ERROR_CHECK(esp_timer_stop(button_timer_handler[5][1]));
     }
 }
 
@@ -209,8 +204,8 @@ void rmtControl(void *params)
     ESP_ERROR_CHECK(rmt_enable(tx_channel));
     
     ir_nec_scan_code_t scan_code = {
-        .address = 0xFF00,
-        .command = 0xC0C0,
+        .address = 0x00FF,
+        .command = 0x0000,
     };
 
     command2send command;
